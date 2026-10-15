@@ -125,23 +125,6 @@ details.more .inner{padding:0 0 6px}
 .spin{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.9s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 
-/* stock sheet */
-.stock{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);height:100%;min-height:0}
-.stock .imgpane{overflow:auto;background:#f0ebe3;border-right:1px solid var(--line);position:relative}
-.stock .imgpane img{display:block;transform-origin:0 0}
-.stock .imgtools{position:sticky;top:0;left:0;z-index:2;display:flex;gap:6px;padding:8px;background:rgba(240,235,227,.92);backdrop-filter:blur(4px);flex-wrap:wrap}
-.stock .listpane{display:flex;flex-direction:column;min-height:0}
-.stock .listpane .lt{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:6px}
-.stock .rows{overflow:auto;flex:1}
-.srow{display:grid;grid-template-columns:72px 1fr 28px;gap:6px;align-items:center;padding:5px 12px;border-bottom:1px solid #f1ebe2;font-size:13px}
-.srow .c{font-weight:800}
-.srow .nm{grid-column:1/-1;color:var(--muted);font-size:11px;margin-top:-4px}
-.srow input.in{padding:4px 8px;font-size:13px;border-radius:8px}
-.srow.dirty{background:#fff8e8}
-.lowbtn{border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12px;padding:3px 0;color:var(--retired)}
-.lowbtn.on{background:var(--low-soft);color:var(--low);border-color:#ecd9a6}
-.notes{font-size:12px;color:#7a3a1c;padding:6px 12px;background:var(--warn-soft)}
-
 /* toast */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:calc(100% - 32px)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -161,8 +144,6 @@ details.more .inner{padding:0 0 6px}
   .sel{flex:1}
   .mask{padding:0}
   .modal,.modal.full{max-height:100vh;height:100%;border-radius:0}
-  .stock{grid-template-columns:1fr;grid-template-rows:45% 55%}
-  .stock .imgpane{border-right:0;border-bottom:1px solid var(--line)}
   .stats{width:100%;margin-left:0}
   .item .c{min-width:78px}
   .mfoot{flex-wrap:wrap;gap:6px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
@@ -201,7 +182,6 @@ const S = {
   brand: '', q: '', showRetired: store.get('sample_retired') === '1',
   samples: [], ignore: [], settings: {},
   loading: true, error: '',
-  stock: null,          // 禾邁缺貨表資訊
   scan: {},             // vendor -> 最近一次核對結果
 };
 
@@ -219,12 +199,7 @@ async function load(){
   try { applyList(await api('list')); }
   catch(e){ S.error = '讀取資料失敗：' + e.message; }
   S.loading = false; render();
-  checkStock();
 }
-async function checkStock(){
-  try { S.stock = await api('stockSheet'); render(); } catch(_) {}
-}
-
 /* ---------------- 主畫面 ---------------- */
 const HIDDEN_BRANDS = ['CLEAF'];   // 不進的品牌：畫面和核對結果都不顯示
 const isHiddenBrand = b => HIDDEN_BRANDS.some(x => String(b || '').toUpperCase().includes(x));
@@ -240,22 +215,13 @@ function render(){
   const brands = [...new Set(list.map(s => s.brand || '未分類'))];
   if (S.brand && !brands.includes(S.brand)) S.brand = '';
   const cnt = b => list.filter(s => (s.brand || '未分類') === b && (S.showRetired || s.status !== '已淘汰')).length;
-  const stockNew = S.stock && S.stock.isNew;
 
   app.innerHTML = `
   <div class="wrap">
     <header>
       <h1>樣板庫存<small>系統板材色號</small></h1>
-      <div class="tabs">${VENDORS.map(v => `<button class="tab ${v===S.vendor?'on':''}" data-vendor="${v}">${v}${v==='禾邁'&&stockNew?'<i class="dot"></i>':''}</button>`).join('')}</div>
+      <div class="tabs">${VENDORS.map(v => `<button class="tab ${v===S.vendor?'on':''}" data-vendor="${v}">${v}</button>`).join('')}</div>
     </header>
-
-    ${S.vendor==='禾邁' && stockNew ? `
-      <div class="banner">
-        <div>📋 <b>禾邁缺貨表有更新</b>　${esc(S.stock.images.map(i=>i.file).join('、'))}</div>
-        <div class="sp"></div>
-        <button class="btn sm accent" data-act="stock">對照標記</button>
-        <button class="btn sm" data-act="stockSeen">標為已讀</button>
-      </div>` : ''}
 
     ${S.error ? `<div class="err">${esc(S.error)}　<button class="btn sm" data-act="reload">重試</button></div>` : ''}
 
@@ -271,7 +237,6 @@ function render(){
     </div>
     <div class="toolbar">
       <button class="btn" data-act="add">＋ 新增樣板</button>
-      ${S.vendor==='禾邁' ? `<button class="btn" data-act="stock">缺貨表</button>` : ''}
       <button class="btn primary" data-act="scan">核對官網</button>
       <span class="stats" id="stats"></span>
     </div>
@@ -419,16 +384,15 @@ function computeDiff(v){
   r._shown = r.items.filter(i => !isHiddenBrand(i.brand)).length;
   const ign = ignoredSet(v);
   const brandIgnored = b => !!ign[BRAND_IGNORE_PREFIX + b];
-  const add = [], addNonstock = [], ignored = [];
+  const add = [], ignored = [];
   r.items.forEach(i => {
     if (invBy[i.key] || isHiddenBrand(i.brand)) return;
     if (ign[i.key] || brandIgnored(i.brand)) { ignored.push(i); return; }
-    (i.stock === 'no' ? addNonstock : add).push(i);
+    add.push(i);
   });
   const retire = inv.filter(s => s.status !== '已淘汰' && !site[s.key]);
-  const nonstock = inv.filter(s => s.status !== '已淘汰' && site[s.key] && site[s.key].stock === 'no').map(s => ({ ...s, siteName: site[s.key].name }));
   const brandIgn = S.ignore.filter(i => i.vendor === v && i.key.startsWith(BRAND_IGNORE_PREFIX)).map(i => i.key.slice(BRAND_IGNORE_PREFIX.length));
-  return { r, add, addNonstock, ignored, retire, nonstock, brandIgn };
+  return { r, add, ignored, retire, brandIgn };
 }
 
 function groupBy(arr, f){ const o = {}; arr.forEach(x => (o[f(x)] ||= []).push(x)); return o; }
@@ -448,7 +412,6 @@ function renderScan(){
         <div><b>${d.r._shown}</b><span>官網色號</span></div>
         <div><b style="color:var(--new)">${d.add.length}</b><span>🆕 官網有、庫存沒有</span></div>
         <div><b style="color:var(--warn)">${d.retire.length}</b><span>🗑️ 庫存有、官網已沒有</span></div>
-        ${v==='禾邁' ? `<div><b style="color:var(--low)">${d.nonstock.length}</b><span>⚠️ 庫存有、官網標非現貨</span></div>` : ''}
       </div>
 
       <section class="sec">
@@ -478,25 +441,6 @@ function renderScan(){
         </div>
         <p class="hint">提醒：官網偶爾會漏放或改版，淘汰前可以先點官網確認一下。</p>` : '<p class="hint">庫存的色號官網都還有 👍</p>'}
       </section>
-
-      ${v==='禾邁' && d.nonstock.length ? `
-      <section class="sec">
-        <h4>⚠️ 庫存有、但官網標「非現貨」 <span class="hint">可能要訂製或停止供貨，視情況淘汰</span></h4>
-        <div class="bgroup">
-          ${d.nonstock.map(s => `<div class="item">
-            <input type="checkbox" data-pick="retire" data-id="${esc(s.id)}" data-grp="nonstock">
-            <span class="c">${esc(s.code)}</span><span class="nm">${esc(s.brand)}・${esc(s.siteName)}</span>
-          </div>`).join('')}
-        </div>
-      </section>` : ''}
-
-      ${d.addNonstock.length ? `
-      <details class="more"><summary>官網標「非現貨」、庫存也沒有（${d.addNonstock.length}）— 通常不用補</summary>
-        <div class="inner">${d.addNonstock.map(i => `<div class="item">
-          <input type="checkbox" data-pick="add" data-key="${esc(i.key)}">
-          <span class="c">${esc(i.code)}</span><span class="nm">${esc(i.brand)}・${esc(i.name)}</span>
-        </div>`).join('')}</div>
-      </details>` : ''}
 
       ${(d.ignored.length || d.brandIgn.length) ? `
       <details class="more"><summary>已忽略（${d.ignored.length} 色${d.brandIgn.length ? '，含整個品牌：' + esc(d.brandIgn.join('、')) : ''}）</summary>
@@ -554,99 +498,6 @@ async function ignoreItems(items, undo){
   catch(e){ toast('失敗：' + e.message); }
 }
 
-/* ---------------- 禾邁缺貨表 ---------------- */
-const SK = { zoom: 0, dirty: {}, q: '' };
-async function openStock(){
-  if (!S.stock) {
-    openModal(`<div class="mhead"><h3>禾邁缺貨表</h3><button class="x" data-close>×</button></div><div class="mbody"><div class="loading"><div class="spin"></div>讀取中…</div></div>`, 'full');
-    try { S.stock = await api('stockSheet'); } catch(e){ $('.mbody').innerHTML = `<div class="err">讀取失敗：${esc(e.message)}</div>`; return; }
-  }
-  SK.dirty = {}; SK.q = '';
-  const st = S.stock;
-  openModal(`
-    <div class="mhead"><h3>禾邁缺貨表</h3><span class="hint">${esc(st.images.map(i=>i.file).join('、') || '找不到圖片')}</span><button class="x" data-close>×</button></div>
-    <div class="stock" style="flex:1;min-height:0">
-      <div class="imgpane" id="imgPane">
-        <div class="imgtools">
-          <button class="btn sm" data-zoom="0">符合寬度</button>
-          <button class="btn sm" data-zoom="1">原尺寸</button>
-          <button class="btn sm" data-zoom="1.6">放大</button>
-          <a class="btn sm ghost" href="${esc(st.page)}" target="_blank" rel="noopener">官網頁面↗</a>
-        </div>
-        ${st.images.map(i => `<img src="${esc(i.url)}" alt="${esc(i.file)}" class="stockImg">`).join('') || '<p class="empty">官網上找不到缺貨表圖片</p>'}
-      </div>
-      <div class="listpane">
-        ${st.notes.length ? `<div class="notes">${st.notes.map(esc).join('<br>')}</div>` : ''}
-        <div class="lt"><input class="in" id="skQ" placeholder="找色號…" style="padding:6px 10px"></div>
-        <div class="rows" id="skRows"></div>
-      </div>
-    </div>
-    <div class="mfoot">
-      <span class="hint">對照左邊的表，在右邊填「標示」（例：25用完停、8,18缺貨），▲＝低庫存。表上沒有的記得清空。</span>
-      <span class="sp"></span>
-      ${st.isNew ? `<button class="btn" data-act="stockSeen">標為已讀</button>` : ''}
-      <button class="btn primary" data-act="stockSave" id="bStockSave" disabled>儲存變更</button>
-    </div>`, 'full');
-  renderStockRows();
-  setZoom(0);
-}
-
-function renderStockRows(){
-  const q = SK.q.trim().toUpperCase();
-  const rows = vendorSamples('禾邁').filter(s => s.status !== '已淘汰' && (!q || s.key.includes(q) || s.name.toUpperCase().includes(q)))
-    .sort(excelSort);
-  $('#skRows').innerHTML = rows.map(s => {
-    const d = SK.dirty[s.id] || {};
-    const mark = d.mark ?? s.mark, low = d.low ?? s.low;
-    return `<div class="srow ${SK.dirty[s.id]?'dirty':''}" data-sid="${esc(s.id)}">
-      <span class="c">${esc(s.code)}</span>
-      <input class="in" data-skmark value="${esc(mark)}" placeholder="—">
-      <button class="lowbtn ${low?'on':''}" data-sklow title="低庫存">▲</button>
-      ${s.name ? `<span class="nm">${esc(s.brand)}・${esc(s.name)}</span>` : ''}
-    </div>`;
-  }).join('') || '<p class="empty">沒有符合的色號</p>';
-  const n = Object.keys(SK.dirty).length, b = $('#bStockSave');
-  if (b) { b.disabled = !n; b.textContent = n ? `儲存變更（${n}）` : '儲存變更'; }
-}
-
-function setZoom(z){
-  SK.zoom = z;
-  document.querySelectorAll('.stockImg').forEach(img => {
-    const pane = $('#imgPane');
-    if (!z) { img.style.width = (pane.clientWidth - 2) + 'px'; }
-    else { img.style.width = (img.naturalWidth * z) + 'px'; }
-  });
-}
-
-function skDirty(row, field, val){
-  const id = row.dataset.sid;
-  const s = S.samples.find(x => x.id === id);
-  const d = SK.dirty[id] || {};
-  d[field] = val;
-  if ((d.mark ?? s.mark) === s.mark && (d.low ?? s.low) === s.low) delete SK.dirty[id];
-  else SK.dirty[id] = d;
-  row.classList.toggle('dirty', !!SK.dirty[id]);
-  const n = Object.keys(SK.dirty).length, b = $('#bStockSave');
-  b.disabled = !n; b.textContent = n ? `儲存變更（${n}）` : '儲存變更';
-}
-
-async function stockSave(btn){
-  const items = Object.entries(SK.dirty).map(([id, d]) => {
-    const s = S.samples.find(x => x.id === id);
-    return { vendor:'禾邁', code:s.code, mark: d.mark ?? s.mark, low: d.low ?? s.low };
-  });
-  btn.disabled = true; btn.textContent = '儲存中…';
-  try { applyList(await api('upsert', { items })); SK.dirty = {}; renderStockRows(); render(); toast(`已更新 ${items.length} 色`); }
-  catch(e){ toast('儲存失敗：' + e.message); btn.disabled = false; }
-}
-
-async function stockSeen(){
-  if (!S.stock) return;
-  try { await api('markSeen', { file:S.stock.sig }); S.stock.isNew = false; S.stock.seen = S.stock.sig; render(); toast('已標為已讀，下次表格更新會再提醒');
-    const b = document.querySelector('.mfoot [data-act="stockSeen"]'); if (b) b.remove(); }
-  catch(e){ toast('失敗：' + e.message); }
-}
-
 /* ---------------- Modal ---------------- */
 function openModal(html, size=''){
   let m = $('#mask');
@@ -674,10 +525,6 @@ document.addEventListener('click', e => {
   if (q) { const i = $('#eMark'); const v = q.dataset.quick; i.value = v === '' ? '' : (i.value + (i.value && /\d$/.test(v) && !/[,，\s]$/.test(i.value) && /\d$/.test(i.value) ? ',' : '') + v); i.focus(); return; }
   const st = t.closest('[data-st]');
   if (st) { st.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === st)); return; }
-  const z = t.closest('[data-zoom]');
-  if (z) { setZoom(+z.dataset.zoom); return; }
-  const low = t.closest('[data-sklow]');
-  if (low) { const row = low.closest('.srow'); const on = !low.classList.contains('on'); low.classList.toggle('on', on); skDirty(row, 'low', on); return; }
 
   const a = t.closest('[data-act]');
   if (!a) return;
@@ -693,9 +540,6 @@ document.addEventListener('click', e => {
   else if (act === 'unignOne') ignoreItems([{ key:a.dataset.key }], true);
   else if (act === 'ignBrand') ignoreItems([{ key:BRAND_IGNORE_PREFIX + a.dataset.brand, code:'整個品牌' }], false);
   else if (act === 'unignBrand') ignoreItems([{ key:BRAND_IGNORE_PREFIX + a.dataset.brand }], true);
-  else if (act === 'stock') openStock();
-  else if (act === 'stockSeen') stockSeen();
-  else if (act === 'stockSave') stockSave(a);
   else if (act === 'reload') load();
   else if (act === 'saveApi') { const v = $('#apiIn').value.trim(); if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(v)) { toast('網址看起來不對，應該是 https://script.google.com/macros/s/…/exec'); return; } S.api = v; store.set('sample_api', v); load(); }
 });
@@ -711,16 +555,12 @@ document.addEventListener('change', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'q') { S.q = t.value; renderList(); return; }
-  if (t.id === 'skQ') { SK.q = t.value; renderStockRows(); return; }
-  if (t.hasAttribute('data-skmark')) { skDirty(t.closest('.srow'), 'mark', t.value.trim()); return; }
 });
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#mask.on')) closeModal();
   if (e.key === 'Enter' && e.target.id === 'apiIn') document.querySelector('[data-act="saveApi"]').click();
 });
-window.addEventListener('resize', () => { if (SK.zoom === 0 && $('#imgPane')) setZoom(0); });
-document.addEventListener('load', e => { if (e.target.classList?.contains('stockImg') && SK.zoom === 0) setZoom(0); }, true);
 
 render();
 if (S.api) load();
