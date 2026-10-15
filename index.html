@@ -53,31 +53,26 @@ h1 small{font-size:13px;font-weight:500;color:var(--muted);margin-left:8px}
 .btn.danger{color:var(--warn);border-color:#efcdb9}
 .btn.sm{padding:5px 12px;font-size:13px}
 .btn:disabled{opacity:.45;cursor:default}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.chip{border:1px solid var(--line);background:var(--paper);padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted)}
-.chip.on{background:var(--accent-soft);border-color:#dccbb3;color:var(--accent)}
-.chip .n{font-weight:500;opacity:.7;margin-left:4px}
+.sel{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8073' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;padding:10px 38px 10px 16px;border-radius:999px;font-weight:700;min-width:180px}
 .toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);user-select:none;cursor:pointer}
-.stats{font-size:13px;color:var(--muted);margin-left:auto}
+.stats{font-size:13px;color:var(--muted);margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 
-/* list */
-.group{margin-bottom:22px}
-.group h2{font-size:14px;font-weight:800;letter-spacing:.06em;margin:0 0 8px;display:flex;align-items:center;gap:8px;color:var(--accent)}
-.group h2 span{font-weight:500;color:var(--muted);letter-spacing:0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;min-height:64px}
-.card:hover{border-color:#d6cab8}
-.card .code{font-weight:800;font-size:15px;letter-spacing:.02em}
-.card .name{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
-.card.retired{opacity:.55;box-shadow:none;background:transparent}
-.card.retired .code{text-decoration:line-through;text-decoration-color:var(--retired)}
-.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
-.tag.low{background:var(--low-soft);color:var(--low)}
-.tag.mark{background:var(--warn-soft);color:var(--warn)}
-.tag.new{background:var(--new-soft);color:var(--new)}
-.tag.hot{background:#fbe3dc;color:var(--hot)}
-.tag.gray{background:#eee9e1;color:var(--muted)}
+/* list：像 Excel 一樣每個品牌一欄、由上往下 */
+.cols{display:flex;gap:12px;align-items:flex-start;overflow-x:auto;padding-bottom:8px}
+.col{flex:0 0 250px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:clip}
+.cols.single .col{flex:1 1 auto;max-width:560px}
+.col h2{position:sticky;top:0;margin:0;padding:10px 14px;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--accent);background:#f3ece1;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.col h2 span{font-weight:500;color:var(--muted)}
+.col ul{list-style:none;margin:0;padding:0}
+.col li+li{border-top:1px solid #f1ebe2}
+.row{width:100%;border:0;background:none;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;padding:7px 14px;min-height:38px}
+.row:hover{background:#fbf7f0}
+.row .code{font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.row .name{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tags{display:flex;gap:4px}
+.row.retired{opacity:.5}
+.row.retired .code{text-decoration:line-through;text-decoration-color:var(--retired)}
+.tag{font-style:normal}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 
 /* modal */
@@ -159,7 +154,11 @@ details.more .inner{padding:0 0 6px}
 @media (max-width:760px){
   .tabs{margin-left:0;width:100%}
   .tab{flex:1}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .cols{flex-direction:column;overflow:visible}
+  .col,.cols.single .col{flex:none;width:100%;max-width:none}
+  .col h2{top:0}
+  .search{min-width:100%}
+  .sel{flex:1}
   .mask{padding:0}
   .modal,.modal.full{max-height:100vh;height:100%;border-radius:0}
   .stock{grid-template-columns:1fr;grid-template-rows:45% 55%}
@@ -227,28 +226,21 @@ async function checkStock(){
 }
 
 /* ---------------- 主畫面 ---------------- */
-function vendorSamples(v = S.vendor){ return S.samples.filter(s => s.vendor === v); }
+const HIDDEN_BRANDS = ['CLEAF'];   // 不進的品牌：畫面和核對結果都不顯示
+const isHiddenBrand = b => HIDDEN_BRANDS.some(x => String(b || '').toUpperCase().includes(x));
+function vendorSamples(v = S.vendor){ return S.samples.filter(s => s.vendor === v && !isHiddenBrand(s.brand)); }
+/** 跟 Excel 一樣逐字排序（K2479 → K4755 → K512） */
+const excelSort = (a, b) => { const x = a.code.toUpperCase(), y = b.code.toUpperCase(); return x < y ? -1 : x > y ? 1 : 0; };
+const norm = s => String(s || '').replace(/\s+/g, '').toUpperCase();
 
 function render(){
   const app = $('#app');
   if (!S.api) { app.innerHTML = setupHTML(); return; }
   const list = vendorSamples();
   const brands = [...new Set(list.map(s => s.brand || '未分類'))];
-  const q = S.q.trim().toUpperCase();
-  const shown = list.filter(s =>
-    (S.showRetired || s.status !== '已淘汰') &&
-    (!S.brand || (s.brand || '未分類') === S.brand) &&
-    (!q || (s.code + ' ' + s.key + ' ' + s.name + ' ' + s.mark + ' ' + s.note).toUpperCase().includes(q))
-  ).sort((a,b) => a.key.localeCompare(b.key, 'en', { numeric:true }));
-  const active = list.filter(s => s.status !== '已淘汰');
-  const low = active.filter(s => s.low).length;
-  const marked = active.filter(s => s.mark).length;
+  if (S.brand && !brands.includes(S.brand)) S.brand = '';
+  const cnt = b => list.filter(s => (s.brand || '未分類') === b && (S.showRetired || s.status !== '已淘汰')).length;
   const stockNew = S.stock && S.stock.isNew;
-
-  const groups = {};
-  brands.forEach(b => groups[b] = []);
-  shown.forEach(s => groups[s.brand || '未分類'].push(s));
-  Object.keys(groups).forEach(b => { if (!groups[b].length) delete groups[b]; });
 
   app.innerHTML = `
   <div class="wrap">
@@ -270,45 +262,60 @@ function render(){
     <div class="toolbar">
       <div class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" placeholder="搜尋色號、色名、標示…" value="${esc(S.q)}">
+        <input id="q" type="search" placeholder="搜尋整個${esc(S.vendor)}：色號、色名、標示…" value="${esc(S.q)}" autocomplete="off">
       </div>
+      <select class="sel" id="brandSel" aria-label="品牌分類">
+        <option value="">全部品牌（${list.filter(s=>S.showRetired||s.status!=='已淘汰').length}）</option>
+        ${brands.map(b => `<option value="${esc(b)}" ${S.brand===b?'selected':''}>${esc(b)}（${cnt(b)}）</option>`).join('')}
+      </select>
+    </div>
+    <div class="toolbar">
       <button class="btn" data-act="add">＋ 新增樣板</button>
       ${S.vendor==='禾邁' ? `<button class="btn" data-act="stock">缺貨表</button>` : ''}
       <button class="btn primary" data-act="scan">核對官網</button>
+      <span class="stats" id="stats"></span>
     </div>
 
-    <div class="chips">
-      <button class="chip ${!S.brand?'on':''}" data-brand="">全部<span class="n">${list.filter(s=>S.showRetired||s.status!=='已淘汰').length}</span></button>
-      ${brands.map(b => `<button class="chip ${S.brand===b?'on':''}" data-brand="${esc(b)}">${esc(b)}<span class="n">${list.filter(s=>(s.brand||'未分類')===b && (S.showRetired||s.status!=='已淘汰')).length}</span></button>`).join('')}
-      <span class="stats">在庫 ${active.length} 色　▲低庫存 ${low}　有標示 ${marked}
-        <label class="toggle" style="margin-left:10px"><input type="checkbox" id="showRetired" ${S.showRetired?'checked':''}> 顯示已淘汰</label>
-      </span>
-    </div>
-
-    ${S.loading ? `<div class="loading"><div class="spin"></div>讀取中…</div>` :
-      !shown.length ? `<div class="empty">${list.length ? '沒有符合的樣板' : '還沒有資料'}</div>` :
-      Object.entries(groups).map(([b, arr]) => `
-        <section class="group">
-          <h2>${esc(b)} <span>${arr.length}</span></h2>
-          <div class="grid">${arr.map(cardHTML).join('')}</div>
-        </section>`).join('')}
+    <div id="list"></div>
   </div>`;
-
-  const qi = $('#q');
-  if (qi && S._focusQ) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); }
+  renderList();
 }
 
-function cardHTML(s){
-  return `<button class="card ${s.status==='已淘汰'?'retired':''}" data-edit="${esc(s.id)}">
+function renderList(){
+  const box = $('#list'); if (!box) return;
+  const list = vendorSamples();
+  const brands = [...new Set(list.map(s => s.brand || '未分類'))];
+  const q = norm(S.q);
+  // 有輸入搜尋時，搜尋整個廠商（不受品牌下拉選單限制）
+  const shown = list.filter(s =>
+    (S.showRetired || s.status !== '已淘汰') &&
+    (q ? norm(s.code + s.name + s.mark + s.note + s.brand).includes(q) : (!S.brand || (s.brand || '未分類') === S.brand))
+  ).sort(excelSort);
+  const active = list.filter(s => s.status !== '已淘汰');
+  $('#stats').innerHTML = `在庫 ${active.length} 色・▲低庫存 ${active.filter(s=>s.low).length}・有標示 ${active.filter(s=>s.mark).length}
+    <label class="toggle"><input type="checkbox" id="showRetired" ${S.showRetired?'checked':''}> 顯示已淘汰</label>`;
+
+  const groups = {};
+  brands.forEach(b => groups[b] = []);
+  shown.forEach(s => groups[s.brand || '未分類'].push(s));
+  Object.keys(groups).forEach(b => { if (!groups[b].length) delete groups[b]; });
+
+  box.innerHTML = S.loading ? `<div class="loading"><div class="spin"></div>讀取中…</div>` :
+    !shown.length ? `<div class="empty">${list.length ? (q ? `${esc(S.vendor)}找不到「${esc(S.q)}」` : '沒有符合的樣板') : '還沒有資料'}</div>` :
+    `${q ? `<p class="hint" style="margin:0 0 10px">在整個${esc(S.vendor)}找到 ${shown.length} 筆</p>` : ''}
+     <div class="cols ${Object.keys(groups).length === 1 ? 'single' : ''}">${Object.entries(groups).map(([b, arr]) => `
+      <section class="col">
+        <h2>${esc(b)}<span>${arr.length}</span></h2>
+        <ul>${arr.map(rowHTML).join('')}</ul>
+      </section>`).join('')}</div>`;
+}
+
+function rowHTML(s){
+  return `<li><button class="row ${s.status==='已淘汰'?'retired':''}" data-edit="${esc(s.id)}">
     <span class="code">${esc(s.code)}</span>
-    <span class="name">${esc(s.name) || '&nbsp;'}</span>
-    ${(s.low || s.mark || s.status==='已淘汰' || s.note) ? `<span class="tags">
-      ${s.status==='已淘汰' ? '<span class="tag gray">已淘汰</span>' : ''}
-      ${s.low ? '<span class="tag low">▲低庫存</span>' : ''}
-      ${s.mark ? `<span class="tag mark">${esc(s.mark)}</span>` : ''}
-      ${s.note ? '<span class="tag gray" title="'+esc(s.note)+'">備註</span>' : ''}
-    </span>` : ''}
-  </button>`;
+    <span class="name">${esc(s.name)}</span>
+    <span class="tags">${s.status==='已淘汰' ? '<i class="tag gray">已淘汰</i>' : ''}${s.low ? '<i class="tag low">▲</i>' : ''}${s.mark ? `<i class="tag mark">${esc(s.mark)}</i>` : ''}${s.note ? '<i class="tag gray" title="'+esc(s.note)+'">註</i>' : ''}</span>
+  </button></li>`;
 }
 
 function setupHTML(){
@@ -409,11 +416,12 @@ function computeDiff(v){
   const inv = vendorSamples(v);
   const invBy = {}; inv.forEach(s => invBy[s.key] = s);
   const site = {}; r.items.forEach(i => site[i.key] = i);
+  r._shown = r.items.filter(i => !isHiddenBrand(i.brand)).length;
   const ign = ignoredSet(v);
   const brandIgnored = b => !!ign[BRAND_IGNORE_PREFIX + b];
   const add = [], addNonstock = [], ignored = [];
   r.items.forEach(i => {
-    if (invBy[i.key]) return;
+    if (invBy[i.key] || isHiddenBrand(i.brand)) return;
     if (ign[i.key] || brandIgnored(i.brand)) { ignored.push(i); return; }
     (i.stock === 'no' ? addNonstock : add).push(i);
   });
@@ -437,7 +445,7 @@ function renderScan(){
       ${d.r.errors.length ? `<div class="err">部分頁面讀取失敗：${esc(d.r.errors.join('、'))}（這些系列的結果可能不完整）</div>` : ''}
       ${d.r._filled ? `<div class="ok">已用官網資料自動補上 ${d.r._filled} 筆色名／品牌。</div>` : ''}
       <div class="sum">
-        <div><b>${d.r.items.length}</b><span>官網色號</span></div>
+        <div><b>${d.r._shown}</b><span>官網色號</span></div>
         <div><b style="color:var(--new)">${d.add.length}</b><span>🆕 官網有、庫存沒有</span></div>
         <div><b style="color:var(--warn)">${d.retire.length}</b><span>🗑️ 庫存有、官網已沒有</span></div>
         ${v==='禾邁' ? `<div><b style="color:var(--low)">${d.nonstock.length}</b><span>⚠️ 庫存有、官網標非現貨</span></div>` : ''}
@@ -586,7 +594,7 @@ async function openStock(){
 function renderStockRows(){
   const q = SK.q.trim().toUpperCase();
   const rows = vendorSamples('禾邁').filter(s => s.status !== '已淘汰' && (!q || s.key.includes(q) || s.name.toUpperCase().includes(q)))
-    .sort((a,b) => a.key.localeCompare(b.key, 'en', { numeric:true }));
+    .sort(excelSort);
   $('#skRows').innerHTML = rows.map(s => {
     const d = SK.dirty[s.id] || {};
     const mark = d.mark ?? s.mark, low = d.low ?? s.low;
@@ -660,8 +668,6 @@ document.addEventListener('click', e => {
   if (t.closest('[data-close]')) { closeModal(); return; }
   const tab = t.closest('[data-vendor]');
   if (tab) { S.vendor = tab.dataset.vendor; S.brand = ''; store.set('sample_vendor', S.vendor); render(); return; }
-  const br = t.closest('[data-brand]:not([data-act])');
-  if (br && br.classList.contains('chip')) { S.brand = br.dataset.brand; render(); return; }
   const ed = t.closest('[data-edit]');
   if (ed) { openEdit(ed.dataset.edit); return; }
   const q = t.closest('[data-quick]');
@@ -696,14 +702,15 @@ document.addEventListener('click', e => {
 
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.id === 'showRetired') { S.showRetired = t.checked; store.set('sample_retired', t.checked ? '1' : '0'); render(); return; }
+  if (t.id === 'showRetired') { S.showRetired = t.checked; store.set('sample_retired', t.checked ? '1' : '0'); renderList(); return; }
+  if (t.id === 'brandSel') { S.brand = t.value; if (S.q) { S.q = ''; $('#q').value = ''; } renderList(); return; }
   if (t.dataset.allin) { document.querySelectorAll(`[data-grp="${CSS.escape(t.dataset.allin)}"]`).forEach(c => c.checked = t.checked); updateScanButtons(); return; }
   if (t.dataset.pick) { updateScanButtons(); return; }
 });
 
 document.addEventListener('input', e => {
   const t = e.target;
-  if (t.id === 'q') { S.q = t.value; S._focusQ = true; render(); S._focusQ = false; return; }
+  if (t.id === 'q') { S.q = t.value; renderList(); return; }
   if (t.id === 'skQ') { SK.q = t.value; renderStockRows(); return; }
   if (t.hasAttribute('data-skmark')) { skDirty(t.closest('.srow'), 'mark', t.value.trim()); return; }
 });
