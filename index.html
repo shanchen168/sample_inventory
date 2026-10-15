@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>樣板庫存</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ======================================================
+   設定：把 Apps Script 網頁應用程式網址貼在這裡
+   （留空的話，打開網頁時會請你貼上，存在這台瀏覽器）
+   ====================================================== */
+:root{
+  --bg:#f6f1e9; --paper:#fffdf9; --ink:#2f2a24; --muted:#8a8073; --line:#e7dfd2;
+  --accent:#8a6a45; --accent-soft:#efe4d4; --new:#3f7d5a; --new-soft:#e3f0e7;
+  --warn:#b4582f; --warn-soft:#f8e6dc; --hot:#c0573a; --low:#b8860b; --low-soft:#fbf1d6;
+  --retired:#b5ada2; --shadow:0 1px 2px rgba(60,45,30,.06),0 4px 14px rgba(60,45,30,.06);
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Nunito","Noto Sans TC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 120px}
+
+/* header */
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:22px;margin:0;font-weight:800;letter-spacing:.02em}
+h1 small{font-size:13px;font-weight:500;color:var(--muted);margin-left:8px}
+.tabs{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;margin-left:auto}
+.tab{border:0;background:none;padding:7px 18px;border-radius:999px;font-weight:700;color:var(--muted);position:relative}
+.tab.on{background:var(--ink);color:#fff}
+.tab .dot{position:absolute;top:5px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--warn)}
+
+/* banner */
+.banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warn-soft);border:1px solid #efcdb9;color:#7a3a1c;border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
+.banner b{font-weight:700}
+.banner .sp{flex:1}
+
+/* toolbar */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.search{flex:1;min-width:180px;position:relative}
+.search input{width:100%;padding:10px 14px 10px 36px;border:1px solid var(--line);border-radius:999px;background:var(--paper)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.45}
+.btn{text-decoration:none;border:1px solid var(--line);background:var(--paper);padding:9px 16px;border-radius:999px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#d6cab8}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ghost{background:none;border-color:transparent}
+.btn.danger{color:var(--warn);border-color:#efcdb9}
+.btn.sm{padding:5px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--paper);padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted)}
+.chip.on{background:var(--accent-soft);border-color:#dccbb3;color:var(--accent)}
+.chip .n{font-weight:500;opacity:.7;margin-left:4px}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);user-select:none;cursor:pointer}
+.stats{font-size:13px;color:var(--muted);margin-left:auto}
+
+/* list */
+.group{margin-bottom:22px}
+.group h2{font-size:14px;font-weight:800;letter-spacing:.06em;margin:0 0 8px;display:flex;align-items:center;gap:8px;color:var(--accent)}
+.group h2 span{font-weight:500;color:var(--muted);letter-spacing:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;min-height:64px}
+.card:hover{border-color:#d6cab8}
+.card .code{font-weight:800;font-size:15px;letter-spacing:.02em}
+.card .name{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.card.retired{opacity:.55;box-shadow:none;background:transparent}
+.card.retired .code{text-decoration:line-through;text-decoration-color:var(--retired)}
+.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.tag.low{background:var(--low-soft);color:var(--low)}
+.tag.mark{background:var(--warn-soft);color:var(--warn)}
+.tag.new{background:var(--new-soft);color:var(--new)}
+.tag.hot{background:#fbe3dc;color:var(--hot)}
+.tag.gray{background:#eee9e1;color:var(--muted)}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(40,32,24,.38);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.mask.on{display:flex}
+.modal{background:var(--paper);border-radius:18px;box-shadow:0 20px 60px rgba(40,30,20,.25);width:100%;max-width:460px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+.modal.wide{max-width:900px}
+.modal.full{max-width:1280px;height:calc(100vh - 32px)}
+.mhead{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.mhead h3{margin:0;font-size:17px;font-weight:800}
+.mhead .x{margin-left:auto;border:0;background:none;font-size:22px;line-height:1;color:var(--muted);padding:4px 8px}
+.mbody{padding:18px 20px;overflow:auto;flex:1}
+.mfoot{display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);background:#fcf9f4}
+.mfoot .sp{flex:1}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 4px}
+label.f:first-child{margin-top:0}
+.in{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.in:focus,.search input:focus{outline:2px solid #d8c4a6;outline-offset:0;border-color:#d8c4a6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.quick button{border:1px dashed #dccbb3;background:none;border-radius:999px;font-size:12px;padding:2px 9px;color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+.seg button{border:0;background:none;padding:5px 14px;border-radius:999px;font-weight:700;color:var(--muted);font-size:13px}
+.seg button.on{background:var(--accent);color:#fff}
+.hint{font-size:12px;color:var(--muted)}
+
+/* scan results */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:18px}
+.sum div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.sum b{display:block;font-size:24px;font-weight:800;line-height:1.2}
+.sum span{font-size:12px;color:var(--muted)}
+.sec{margin-bottom:22px}
+.sec>h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sec>h4 .sp{flex:1}
+.bgroup{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px;overflow:hidden}
+.bgroup>.bh{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fbf8f3;border-bottom:1px solid var(--line);font-weight:800;font-size:13px}
+.bgroup>.bh .sp{flex:1}
+.item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-top:1px solid #f1ebe2;font-size:14px}
+.item:first-of-type{border-top:0}
+.item input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+.item .c{font-weight:800;min-width:96px}
+.item .nm{color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item a.lk{font-size:12px;text-decoration:none;opacity:.7}
+details.more{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px}
+details.more summary{padding:10px 14px;cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+details.more .inner{padding:0 0 6px}
+.err{background:var(--warn-soft);color:#7a3a1c;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.ok{background:var(--new-soft);color:#24533a;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 20px;color:var(--muted)}
+.spin{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* stock sheet */
+.stock{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);height:100%;min-height:0}
+.stock .imgpane{overflow:auto;background:#f0ebe3;border-right:1px solid var(--line);position:relative}
+.stock .imgpane img{display:block;transform-origin:0 0}
+.stock .imgtools{position:sticky;top:0;left:0;z-index:2;display:flex;gap:6px;padding:8px;background:rgba(240,235,227,.92);backdrop-filter:blur(4px);flex-wrap:wrap}
+.stock .listpane{display:flex;flex-direction:column;min-height:0}
+.stock .listpane .lt{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:6px}
+.stock .rows{overflow:auto;flex:1}
+.srow{display:grid;grid-template-columns:72px 1fr 28px;gap:6px;align-items:center;padding:5px 12px;border-bottom:1px solid #f1ebe2;font-size:13px}
+.srow .c{font-weight:800}
+.srow .nm{grid-column:1/-1;color:var(--muted);font-size:11px;margin-top:-4px}
+.srow input.in{padding:4px 8px;font-size:13px;border-radius:8px}
+.srow.dirty{background:#fff8e8}
+.lowbtn{border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12px;padding:3px 0;color:var(--retired)}
+.lowbtn.on{background:var(--low-soft);color:var(--low);border-color:#ecd9a6}
+.notes{font-size:12px;color:#7a3a1c;padding:6px 12px;background:var(--warn-soft)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* setup */
+.setup{max-width:520px;margin:12vh auto;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow)}
+.setup h2{margin:0 0 8px}
+.setup ol{padding-left:20px;color:var(--muted);font-size:14px}
+
+@media (max-width:760px){
+  .tabs{margin-left:0;width:100%}
+  .tab{flex:1}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .mask{padding:0}
+  .modal,.modal.full{max-height:100vh;height:100%;border-radius:0}
+  .stock{grid-template-columns:1fr;grid-template-rows:45% 55%}
+  .stock .imgpane{border-right:0;border-bottom:1px solid var(--line)}
+  .stats{width:100%;margin-left:0}
+  .item .c{min-width:78px}
+  .mfoot{flex-wrap:wrap;gap:6px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  .mfoot .btn{padding:7px 12px;font-size:13px}
+  .mfoot>.hint{display:none}
+  .sum{grid-template-columns:repeat(3,1fr)}
+  .sum div{padding:8px 10px}
+  .sum b{font-size:20px}
+  .mhead,.mbody{padding-left:14px;padding-right:14px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = ''; // ← 貼上 Apps Script 網頁應用程式網址（https://script.google.com/macros/s/.../exec）
+
+/* ---------------- 小工具 ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const keyOf = c => fixCode(c).replace(/\s+/g, '').toUpperCase();
+function fixCode(v){ let s = String(v ?? '').trim(); if (/^\d+$/.test(s)) { s = String(parseInt(s,10)); while (s.length < 3) s = '0' + s; } return s.replace(/\s+/g,' '); }
+const store = { get(k){ try { return localStorage.getItem(k); } catch(_) { return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(_){} } };
+let toastTimer;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('on'), 2600); }
+const VENDORS = ['新櫃族','禾邁'];
+const VENDOR_SITE = { '新櫃族':'https://www.newcabinet.com.tw/products/?mode=list&type_id=62', '禾邁':'https://hemai.tw/panel_patterns/' };
+const BRAND_IGNORE_PREFIX = '*品牌:';
+
+/* ---------------- 狀態 ---------------- */
+const S = {
+  api: API_URL || store.get('sample_api') || '',
+  vendor: store.get('sample_vendor') || '新櫃族',
+  brand: '', q: '', showRetired: store.get('sample_retired') === '1',
+  samples: [], ignore: [], settings: {},
+  loading: true, error: '',
+  stock: null,          // 禾邁缺貨表資訊
+  scan: {},             // vendor -> 最近一次核對結果
+};
+
+/* ---------------- API ---------------- */
+async function api(action, payload = {}){
+  const res = await fetch(S.api, { method:'POST', body: JSON.stringify({ action, ...payload }) });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || '發生錯誤');
+  return j.data;
+}
+function applyList(d){ S.samples = d.samples || []; S.ignore = d.ignore || []; S.settings = d.settings || {}; }
+
+async function load(){
+  S.loading = true; S.error = ''; render();
+  try { applyList(await api('list')); }
+  catch(e){ S.error = '讀取資料失敗：' + e.message; }
+  S.loading = false; render();
+  checkStock();
+}
+async function checkStock(){
+  try { S.stock = await api('stockSheet'); render(); } catch(_) {}
+}
+
+/* ---------------- 主畫面 ---------------- */
+function vendorSamples(v = S.vendor){ return S.samples.filter(s => s.vendor === v); }
+
+function render(){
+  const app = $('#app');
+  if (!S.api) { app.innerHTML = setupHTML(); return; }
+  const list = vendorSamples();
+  const brands = [...new Set(list.map(s => s.brand || '未分類'))];
+  const q = S.q.trim().toUpperCase();
+  const shown = list.filter(s =>
+    (S.showRetired || s.status !== '已淘汰') &&
+    (!S.brand || (s.brand || '未分類') === S.brand) &&
+    (!q || (s.code + ' ' + s.key + ' ' + s.name + ' ' + s.mark + ' ' + s.note).toUpperCase().includes(q))
+  ).sort((a,b) => a.key.localeCompare(b.key, 'en', { numeric:true }));
+  const active = list.filter(s => s.status !== '已淘汰');
+  const low = active.filter(s => s.low).length;
+  const marked = active.filter(s => s.mark).length;
+  const stockNew = S.stock && S.stock.isNew;
+
+  const groups = {};
+  brands.forEach(b => groups[b] = []);
+  shown.forEach(s => groups[s.brand || '未分類'].push(s));
+  Object.keys(groups).forEach(b => { if (!groups[b].length) delete groups[b]; });
+
+  app.innerHTML = `
+  <div class="wrap">
+    <header>
+      <h1>樣板庫存<small>系統板材色號</small></h1>
+      <div class="tabs">${VENDORS.map(v => `<button class="tab ${v===S.vendor?'on':''}" data-vendor="${v}">${v}${v==='禾邁'&&stockNew?'<i class="dot"></i>':''}</button>`).join('')}</div>
+    </header>
+
+    ${S.vendor==='禾邁' && stockNew ? `
+      <div class="banner">
+        <div>📋 <b>禾邁缺貨表有更新</b>　${esc(S.stock.images.map(i=>i.file).join('、'))}</div>
+        <div class="sp"></div>
+        <button class="btn sm accent" data-act="stock">對照標記</button>
+        <button class="btn sm" data-act="stockSeen">標為已讀</button>
+      </div>` : ''}
+
+    ${S.error ? `<div class="err">${esc(S.error)}　<button class="btn sm" data-act="reload">重試</button></div>` : ''}
+
+    <div class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" placeholder="搜尋色號、色名、標示…" value="${esc(S.q)}">
+      </div>
+      <button class="btn" data-act="add">＋ 新增樣板</button>
+      ${S.vendor==='禾邁' ? `<button class="btn" data-act="stock">缺貨表</button>` : ''}
+      <button class="btn primary" data-act="scan">核對官網</button>
+    </div>
+
+    <div class="chips">
+      <button class="chip ${!S.brand?'on':''}" data-brand="">全部<span class="n">${list.filter(s=>S.showRetired||s.status!=='已淘汰').length}</span></button>
+      ${brands.map(b => `<button class="chip ${S.brand===b?'on':''}" data-brand="${esc(b)}">${esc(b)}<span class="n">${list.filter(s=>(s.brand||'未分類')===b && (S.showRetired||s.status!=='已淘汰')).length}</span></button>`).join('')}
+      <span class="stats">在庫 ${active.length} 色　▲低庫存 ${low}　有標示 ${marked}
+        <label class="toggle" style="margin-left:10px"><input type="checkbox" id="showRetired" ${S.showRetired?'checked':''}> 顯示已淘汰</label>
+      </span>
+    </div>
+
+    ${S.loading ? `<div class="loading"><div class="spin"></div>讀取中…</div>` :
+      !shown.length ? `<div class="empty">${list.length ? '沒有符合的樣板' : '還沒有資料'}</div>` :
+      Object.entries(groups).map(([b, arr]) => `
+        <section class="group">
+          <h2>${esc(b)} <span>${arr.length}</span></h2>
+          <div class="grid">${arr.map(cardHTML).join('')}</div>
+        </section>`).join('')}
+  </div>`;
+
+  const qi = $('#q');
+  if (qi && S._focusQ) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); }
+}
+
+function cardHTML(s){
+  return `<button class="card ${s.status==='已淘汰'?'retired':''}" data-edit="${esc(s.id)}">
+    <span class="code">${esc(s.code)}</span>
+    <span class="name">${esc(s.name) || '&nbsp;'}</span>
+    ${(s.low || s.mark || s.status==='已淘汰' || s.note) ? `<span class="tags">
+      ${s.status==='已淘汰' ? '<span class="tag gray">已淘汰</span>' : ''}
+      ${s.low ? '<span class="tag low">▲低庫存</span>' : ''}
+      ${s.mark ? `<span class="tag mark">${esc(s.mark)}</span>` : ''}
+      ${s.note ? '<span class="tag gray" title="'+esc(s.note)+'">備註</span>' : ''}
+    </span>` : ''}
+  </button>`;
+}
+
+function setupHTML(){
+  return `<div class="setup">
+    <h2>第一次使用</h2>
+    <p class="hint">請貼上 Apps Script「網頁應用程式」的網址。網址會存在這台瀏覽器；想讓每台都不用貼，可以直接寫進 index.html 最上面的 <code>API_URL</code>。</p>
+    <label class="f">Apps Script 網址</label>
+    <input class="in" id="apiIn" placeholder="https://script.google.com/macros/s/…/exec">
+    <div style="margin-top:14px;display:flex;gap:8px"><button class="btn primary" data-act="saveApi">開始使用</button></div>
+  </div>`;
+}
+
+/* ---------------- 新增／編輯 ---------------- */
+function openEdit(id){
+  const s = id ? S.samples.find(x => x.id === id) : { vendor:S.vendor, brand:S.brand||'', code:'', name:'', status:'在庫', low:false, mark:'', note:'' };
+  const brands = [...new Set(vendorSamples().map(x => x.brand).filter(Boolean))];
+  openModal(`
+    <div class="mhead"><h3>${id ? '編輯樣板' : '新增樣板'}<span class="hint" style="margin-left:8px">${esc(S.vendor)}</span></h3><button class="x" data-close>×</button></div>
+    <div class="mbody">
+      <div class="row2">
+        <div><label class="f">色號</label><input class="in" id="eCode" value="${esc(s.code)}" placeholder="例：H1145 ST10"></div>
+        <div><label class="f">品牌</label><input class="in" id="eBrand" value="${esc(s.brand)}" list="brandList"><datalist id="brandList">${brands.map(b=>`<option value="${esc(b)}">`).join('')}</datalist></div>
+      </div>
+      <label class="f">色名</label><input class="in" id="eName" value="${esc(s.name)}">
+      <label class="f">標示（缺貨／用完停，可寫厚度）</label>
+      <input class="in" id="eMark" value="${esc(s.mark)}" placeholder="例：25用完停、8,18缺貨">
+      <div class="quick">${['8','18','25','缺貨','用完停','全用完停'].map(t=>`<button type="button" data-quick="${t}">${t}</button>`).join('')}<button type="button" data-quick="">清空</button></div>
+      <label class="f">備註</label><textarea class="in" id="eNote" rows="2">${esc(s.note)}</textarea>
+      <div class="row2" style="margin-top:14px;align-items:center">
+        <label class="toggle" style="font-size:14px;color:var(--ink)"><input type="checkbox" id="eLow" ${s.low?'checked':''}> ▲ 低庫存（追補料用）</label>
+        <div style="text-align:right"><div class="seg" id="eStatus">${['在庫','已淘汰'].map(t=>`<button type="button" class="${s.status===t?'on':''}" data-st="${t}">${t}</button>`).join('')}</div></div>
+      </div>
+      ${id ? `<p class="hint" style="margin-top:14px">最後更新：${esc(s.updated)}</p>` : ''}
+    </div>
+    <div class="mfoot">
+      ${id ? `<button class="btn danger sm" data-act="delOne" data-id="${esc(id)}">刪除</button>` : ''}
+      <span class="sp"></span>
+      <button class="btn" data-close>取消</button>
+      <button class="btn primary" data-act="saveOne" data-id="${esc(id||'')}">儲存</button>
+    </div>`);
+  setTimeout(()=>$('#eCode')?.focus(), 30);
+}
+
+async function saveOne(btn){
+  const id = btn.dataset.id;
+  const code = fixCode($('#eCode').value);
+  if (!code) { toast('請填色號'); return; }
+  const newId = S.vendor + ':' + keyOf(code);
+  if (newId !== id && S.samples.some(x => x.id === newId)) { toast('這個色號已經有了'); return; }
+  const item = {
+    vendor:S.vendor, code, oldId:id || undefined,
+    brand:$('#eBrand').value.trim(), name:$('#eName').value.trim(),
+    mark:$('#eMark').value.trim(), note:$('#eNote').value.trim(),
+    low:$('#eLow').checked, status:$('#eStatus .on')?.dataset.st || '在庫',
+  };
+  btn.disabled = true; btn.textContent = '儲存中…';
+  try { applyList(await api('upsert', { items:[item] })); closeModal(); render(); toast('已儲存 ' + code); }
+  catch(e){ toast('儲存失敗：' + e.message); btn.disabled = false; btn.textContent = '儲存'; }
+}
+
+async function delOne(btn){
+  if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.textContent = '再按一次確認刪除'; return; }
+  btn.disabled = true;
+  try { applyList(await api('delete', { ids:[btn.dataset.id] })); closeModal(); render(); toast('已刪除'); }
+  catch(e){ toast('刪除失敗：' + e.message); btn.disabled = false; }
+}
+
+/* ---------------- 核對官網 ---------------- */
+async function openScan(force){
+  const v = S.vendor;
+  if (S.scan[v] && !force) { renderScan(); return; }
+  openModal(`
+    <div class="mhead"><h3>核對官網・${esc(v)}</h3><button class="x" data-close>×</button></div>
+    <div class="mbody"><div class="loading"><div class="spin"></div>正在讀取 ${esc(v)} 官網所有系列…<span class="hint">大約 10–40 秒</span></div></div>`, 'wide');
+  try {
+    const r = await api('scan', { vendor:v });
+    S.scan[v] = r;
+    await autofillNames(v, r);
+    if (S.vendor === v && $('#mask.on')) renderScan();
+  } catch(e){
+    if ($('#mask.on')) $('.mbody').innerHTML = `<div class="err">核對失敗：${esc(e.message)}</div><button class="btn" data-act="rescan">再試一次</button>`;
+  }
+}
+
+/** 庫存裡沒有色名（或品牌是「其他」）的，用官網資料自動補上 */
+async function autofillNames(v, r){
+  const site = {}; r.items.forEach(i => site[i.key] = i);
+  const fills = vendorSamples(v).filter(s => site[s.key] && (!s.name || !s.brand || s.brand === '其他'))
+    .map(s => ({ vendor:v, code:s.code, name: s.name || site[s.key].name, brand: (!s.brand || s.brand==='其他') ? site[s.key].brand : s.brand }));
+  r._filled = fills.length;
+  if (fills.length) { try { applyList(await api('upsert', { items:fills })); render(); } catch(_) { r._filled = 0; } }
+}
+
+function ignoredSet(v){ const o = {}; S.ignore.filter(i => i.vendor === v).forEach(i => o[i.key] = i); return o; }
+
+function computeDiff(v){
+  const r = S.scan[v];
+  const inv = vendorSamples(v);
+  const invBy = {}; inv.forEach(s => invBy[s.key] = s);
+  const site = {}; r.items.forEach(i => site[i.key] = i);
+  const ign = ignoredSet(v);
+  const brandIgnored = b => !!ign[BRAND_IGNORE_PREFIX + b];
+  const add = [], addNonstock = [], ignored = [];
+  r.items.forEach(i => {
+    if (invBy[i.key]) return;
+    if (ign[i.key] || brandIgnored(i.brand)) { ignored.push(i); return; }
+    (i.stock === 'no' ? addNonstock : add).push(i);
+  });
+  const retire = inv.filter(s => s.status !== '已淘汰' && !site[s.key]);
+  const nonstock = inv.filter(s => s.status !== '已淘汰' && site[s.key] && site[s.key].stock === 'no').map(s => ({ ...s, siteName: site[s.key].name }));
+  const brandIgn = S.ignore.filter(i => i.vendor === v && i.key.startsWith(BRAND_IGNORE_PREFIX)).map(i => i.key.slice(BRAND_IGNORE_PREFIX.length));
+  return { r, add, addNonstock, ignored, retire, nonstock, brandIgn };
+}
+
+function groupBy(arr, f){ const o = {}; arr.forEach(x => (o[f(x)] ||= []).push(x)); return o; }
+
+function flagTag(f){ return f === 'New' ? '<span class="tag new">New</span>' : f === 'Hot' ? '<span class="tag hot">Hot</span>' : ''; }
+
+function renderScan(){
+  const v = S.vendor;
+  const d = computeDiff(v);
+  const addG = groupBy(d.add, i => i.brand);
+  const html = `
+    <div class="mhead"><h3>核對官網・${esc(v)}</h3><span class="hint">${esc(d.r.at)} 讀取</span><button class="x" data-close>×</button></div>
+    <div class="mbody" id="scanBody">
+      ${d.r.errors.length ? `<div class="err">部分頁面讀取失敗：${esc(d.r.errors.join('、'))}（這些系列的結果可能不完整）</div>` : ''}
+      ${d.r._filled ? `<div class="ok">已用官網資料自動補上 ${d.r._filled} 筆色名／品牌。</div>` : ''}
+      <div class="sum">
+        <div><b>${d.r.items.length}</b><span>官網色號</span></div>
+        <div><b style="color:var(--new)">${d.add.length}</b><span>🆕 官網有、庫存沒有</span></div>
+        <div><b style="color:var(--warn)">${d.retire.length}</b><span>🗑️ 庫存有、官網已沒有</span></div>
+        ${v==='禾邁' ? `<div><b style="color:var(--low)">${d.nonstock.length}</b><span>⚠️ 庫存有、官網標非現貨</span></div>` : ''}
+      </div>
+
+      <section class="sec">
+        <h4>🆕 需補進的新色 <span class="hint">勾選後加入庫存；不打算進的可以按「忽略」，下次就不會再列出來</span></h4>
+        ${d.add.length ? Object.entries(addG).map(([b, arr]) => `
+          <div class="bgroup">
+            <div class="bh"><label class="toggle" style="color:var(--ink)"><input type="checkbox" data-allin="add:${esc(b)}"> ${esc(b)}</label><span class="hint">${arr.length}</span><span class="sp"></span>
+              <button class="btn sm ghost" data-act="ignBrand" data-brand="${esc(b)}">忽略整個品牌</button></div>
+            ${arr.map(i => `<div class="item">
+              <input type="checkbox" data-pick="add" data-key="${esc(i.key)}" data-grp="add:${esc(b)}">
+              <span class="c">${esc(i.code)}</span><span class="nm">${esc(i.name)}</span>${flagTag(i.flag)}
+              ${i.url ? `<a class="lk" href="${esc(i.url)}" target="_blank" rel="noopener">官網↗</a>` : ''}
+              <button class="btn sm ghost" data-act="ignOne" data-key="${esc(i.key)}" data-code="${esc(i.code)}">忽略</button>
+            </div>`).join('')}
+          </div>`).join('') : '<p class="hint">沒有需要補的新色 👍</p>'}
+      </section>
+
+      <section class="sec">
+        <h4>🗑️ 需淘汰（官網已經找不到） <span class="hint">勾選後標為「已淘汰」，資料會保留</span></h4>
+        ${d.retire.length ? `<div class="bgroup">
+          <div class="bh"><label class="toggle" style="color:var(--ink)"><input type="checkbox" data-allin="retire"> 全選</label><span class="sp"></span></div>
+          ${d.retire.map(s => `<div class="item">
+            <input type="checkbox" data-pick="retire" data-id="${esc(s.id)}" data-grp="retire">
+            <span class="c">${esc(s.code)}</span><span class="nm">${esc(s.brand)}${s.name?'・'+esc(s.name):''}</span>
+            ${s.mark ? `<span class="tag mark">${esc(s.mark)}</span>` : ''}
+          </div>`).join('')}
+        </div>
+        <p class="hint">提醒：官網偶爾會漏放或改版，淘汰前可以先點官網確認一下。</p>` : '<p class="hint">庫存的色號官網都還有 👍</p>'}
+      </section>
+
+      ${v==='禾邁' && d.nonstock.length ? `
+      <section class="sec">
+        <h4>⚠️ 庫存有、但官網標「非現貨」 <span class="hint">可能要訂製或停止供貨，視情況淘汰</span></h4>
+        <div class="bgroup">
+          ${d.nonstock.map(s => `<div class="item">
+            <input type="checkbox" data-pick="retire" data-id="${esc(s.id)}" data-grp="nonstock">
+            <span class="c">${esc(s.code)}</span><span class="nm">${esc(s.brand)}・${esc(s.siteName)}</span>
+          </div>`).join('')}
+        </div>
+      </section>` : ''}
+
+      ${d.addNonstock.length ? `
+      <details class="more"><summary>官網標「非現貨」、庫存也沒有（${d.addNonstock.length}）— 通常不用補</summary>
+        <div class="inner">${d.addNonstock.map(i => `<div class="item">
+          <input type="checkbox" data-pick="add" data-key="${esc(i.key)}">
+          <span class="c">${esc(i.code)}</span><span class="nm">${esc(i.brand)}・${esc(i.name)}</span>
+        </div>`).join('')}</div>
+      </details>` : ''}
+
+      ${(d.ignored.length || d.brandIgn.length) ? `
+      <details class="more"><summary>已忽略（${d.ignored.length} 色${d.brandIgn.length ? '，含整個品牌：' + esc(d.brandIgn.join('、')) : ''}）</summary>
+        <div class="inner">
+          ${d.brandIgn.map(b => `<div class="item"><span class="c">品牌</span><span class="nm">${esc(b)}</span><button class="btn sm ghost" data-act="unignBrand" data-brand="${esc(b)}">取消忽略</button></div>`).join('')}
+          ${d.ignored.filter(i => !d.brandIgn.includes(i.brand)).map(i => `<div class="item"><span class="c">${esc(i.code)}</span><span class="nm">${esc(i.brand)}・${esc(i.name)}</span><button class="btn sm ghost" data-act="unignOne" data-key="${esc(i.key)}">取消忽略</button></div>`).join('')}
+        </div>
+      </details>` : ''}
+    </div>
+    <div class="mfoot">
+      <button class="btn sm" data-act="rescan">重新讀取</button>
+      <a class="btn sm ghost" href="${VENDOR_SITE[v]}" target="_blank" rel="noopener">開官網↗</a>
+      <span class="sp"></span>
+      <button class="btn" data-act="doRetire" id="bRetire" disabled>標為已淘汰</button>
+      <button class="btn accent" data-act="doAdd" id="bAdd" disabled>加入庫存</button>
+    </div>`;
+  const sc = $('#scanBody')?.scrollTop || 0;
+  const keep = new Set([...document.querySelectorAll('[data-pick]:checked')].map(x => x.dataset.key || x.dataset.id));
+  const opened = new Set([...document.querySelectorAll('details.more')].map((x, i) => x.open ? i : -1));
+  openModal(html, 'wide');
+  document.querySelectorAll('[data-pick]').forEach(x => { if (keep.has(x.dataset.key || x.dataset.id)) x.checked = true; });
+  document.querySelectorAll('details.more').forEach((x, i) => { if (opened.has(i)) x.open = true; });
+  $('#scanBody').scrollTop = sc;
+  updateScanButtons();
+}
+
+function updateScanButtons(){
+  const a = document.querySelectorAll('[data-pick="add"]:checked').length;
+  const r = document.querySelectorAll('[data-pick="retire"]:checked').length;
+  const bA = $('#bAdd'), bR = $('#bRetire');
+  if (bA) { bA.disabled = !a; bA.textContent = a ? `加入庫存（${a}）` : '加入庫存'; }
+  if (bR) { bR.disabled = !r; bR.textContent = r ? `標為已淘汰（${r}）` : '標為已淘汰'; }
+}
+
+async function doAdd(btn){
+  const v = S.vendor, r = S.scan[v];
+  const keys = [...document.querySelectorAll('[data-pick="add"]:checked')].map(x => x.dataset.key);
+  const items = r.items.filter(i => keys.includes(i.key)).map(i => ({ vendor:v, code:i.code, brand:i.brand, name:i.name, status:'在庫', low:false, mark:'', note:'' }));
+  btn.disabled = true; btn.textContent = '加入中…';
+  try { applyList(await api('upsert', { items })); render(); renderScan(); toast(`已加入 ${items.length} 色`); }
+  catch(e){ toast('失敗：' + e.message); updateScanButtons(); }
+}
+
+async function doRetire(btn){
+  const v = S.vendor;
+  const ids = [...document.querySelectorAll('[data-pick="retire"]:checked')].map(x => x.dataset.id);
+  const items = S.samples.filter(s => ids.includes(s.id)).map(s => ({ vendor:v, code:s.code, status:'已淘汰' }));
+  btn.disabled = true; btn.textContent = '處理中…';
+  try { applyList(await api('upsert', { items })); render(); renderScan(); toast(`已將 ${items.length} 色標為已淘汰`); }
+  catch(e){ toast('失敗：' + e.message); updateScanButtons(); }
+}
+
+async function ignoreItems(items, undo){
+  try { applyList(await api('ignore', { vendor:S.vendor, items, undo })); renderScan(); toast(undo ? '已取消忽略' : '已忽略'); }
+  catch(e){ toast('失敗：' + e.message); }
+}
+
+/* ---------------- 禾邁缺貨表 ---------------- */
+const SK = { zoom: 0, dirty: {}, q: '' };
+async function openStock(){
+  if (!S.stock) {
+    openModal(`<div class="mhead"><h3>禾邁缺貨表</h3><button class="x" data-close>×</button></div><div class="mbody"><div class="loading"><div class="spin"></div>讀取中…</div></div>`, 'full');
+    try { S.stock = await api('stockSheet'); } catch(e){ $('.mbody').innerHTML = `<div class="err">讀取失敗：${esc(e.message)}</div>`; return; }
+  }
+  SK.dirty = {}; SK.q = '';
+  const st = S.stock;
+  openModal(`
+    <div class="mhead"><h3>禾邁缺貨表</h3><span class="hint">${esc(st.images.map(i=>i.file).join('、') || '找不到圖片')}</span><button class="x" data-close>×</button></div>
+    <div class="stock" style="flex:1;min-height:0">
+      <div class="imgpane" id="imgPane">
+        <div class="imgtools">
+          <button class="btn sm" data-zoom="0">符合寬度</button>
+          <button class="btn sm" data-zoom="1">原尺寸</button>
+          <button class="btn sm" data-zoom="1.6">放大</button>
+          <a class="btn sm ghost" href="${esc(st.page)}" target="_blank" rel="noopener">官網頁面↗</a>
+        </div>
+        ${st.images.map(i => `<img src="${esc(i.url)}" alt="${esc(i.file)}" class="stockImg">`).join('') || '<p class="empty">官網上找不到缺貨表圖片</p>'}
+      </div>
+      <div class="listpane">
+        ${st.notes.length ? `<div class="notes">${st.notes.map(esc).join('<br>')}</div>` : ''}
+        <div class="lt"><input class="in" id="skQ" placeholder="找色號…" style="padding:6px 10px"></div>
+        <div class="rows" id="skRows"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <span class="hint">對照左邊的表，在右邊填「標示」（例：25用完停、8,18缺貨），▲＝低庫存。表上沒有的記得清空。</span>
+      <span class="sp"></span>
+      ${st.isNew ? `<button class="btn" data-act="stockSeen">標為已讀</button>` : ''}
+      <button class="btn primary" data-act="stockSave" id="bStockSave" disabled>儲存變更</button>
+    </div>`, 'full');
+  renderStockRows();
+  setZoom(0);
+}
+
+function renderStockRows(){
+  const q = SK.q.trim().toUpperCase();
+  const rows = vendorSamples('禾邁').filter(s => s.status !== '已淘汰' && (!q || s.key.includes(q) || s.name.toUpperCase().includes(q)))
+    .sort((a,b) => a.key.localeCompare(b.key, 'en', { numeric:true }));
+  $('#skRows').innerHTML = rows.map(s => {
+    const d = SK.dirty[s.id] || {};
+    const mark = d.mark ?? s.mark, low = d.low ?? s.low;
+    return `<div class="srow ${SK.dirty[s.id]?'dirty':''}" data-sid="${esc(s.id)}">
+      <span class="c">${esc(s.code)}</span>
+      <input class="in" data-skmark value="${esc(mark)}" placeholder="—">
+      <button class="lowbtn ${low?'on':''}" data-sklow title="低庫存">▲</button>
+      ${s.name ? `<span class="nm">${esc(s.brand)}・${esc(s.name)}</span>` : ''}
+    </div>`;
+  }).join('') || '<p class="empty">沒有符合的色號</p>';
+  const n = Object.keys(SK.dirty).length, b = $('#bStockSave');
+  if (b) { b.disabled = !n; b.textContent = n ? `儲存變更（${n}）` : '儲存變更'; }
+}
+
+function setZoom(z){
+  SK.zoom = z;
+  document.querySelectorAll('.stockImg').forEach(img => {
+    const pane = $('#imgPane');
+    if (!z) { img.style.width = (pane.clientWidth - 2) + 'px'; }
+    else { img.style.width = (img.naturalWidth * z) + 'px'; }
+  });
+}
+
+function skDirty(row, field, val){
+  const id = row.dataset.sid;
+  const s = S.samples.find(x => x.id === id);
+  const d = SK.dirty[id] || {};
+  d[field] = val;
+  if ((d.mark ?? s.mark) === s.mark && (d.low ?? s.low) === s.low) delete SK.dirty[id];
+  else SK.dirty[id] = d;
+  row.classList.toggle('dirty', !!SK.dirty[id]);
+  const n = Object.keys(SK.dirty).length, b = $('#bStockSave');
+  b.disabled = !n; b.textContent = n ? `儲存變更（${n}）` : '儲存變更';
+}
+
+async function stockSave(btn){
+  const items = Object.entries(SK.dirty).map(([id, d]) => {
+    const s = S.samples.find(x => x.id === id);
+    return { vendor:'禾邁', code:s.code, mark: d.mark ?? s.mark, low: d.low ?? s.low };
+  });
+  btn.disabled = true; btn.textContent = '儲存中…';
+  try { applyList(await api('upsert', { items })); SK.dirty = {}; renderStockRows(); render(); toast(`已更新 ${items.length} 色`); }
+  catch(e){ toast('儲存失敗：' + e.message); btn.disabled = false; }
+}
+
+async function stockSeen(){
+  if (!S.stock) return;
+  try { await api('markSeen', { file:S.stock.sig }); S.stock.isNew = false; S.stock.seen = S.stock.sig; render(); toast('已標為已讀，下次表格更新會再提醒');
+    const b = document.querySelector('.mfoot [data-act="stockSeen"]'); if (b) b.remove(); }
+  catch(e){ toast('失敗：' + e.message); }
+}
+
+/* ---------------- Modal ---------------- */
+function openModal(html, size=''){
+  let m = $('#mask');
+  if (!m) { m = document.createElement('div'); m.id = 'mask'; m.className = 'mask'; document.body.appendChild(m); }
+  m.innerHTML = `<div class="modal ${size}">${html}</div>`;
+  m.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  const m = $('#mask');
+  if (m) { m.classList.remove('on'); m.innerHTML = ''; }
+  document.body.style.overflow = '';
+}
+
+/* ---------------- 事件 ---------------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.id === 'mask') { closeModal(); return; }
+  if (t.closest('[data-close]')) { closeModal(); return; }
+  const tab = t.closest('[data-vendor]');
+  if (tab) { S.vendor = tab.dataset.vendor; S.brand = ''; store.set('sample_vendor', S.vendor); render(); return; }
+  const br = t.closest('[data-brand]:not([data-act])');
+  if (br && br.classList.contains('chip')) { S.brand = br.dataset.brand; render(); return; }
+  const ed = t.closest('[data-edit]');
+  if (ed) { openEdit(ed.dataset.edit); return; }
+  const q = t.closest('[data-quick]');
+  if (q) { const i = $('#eMark'); const v = q.dataset.quick; i.value = v === '' ? '' : (i.value + (i.value && /\d$/.test(v) && !/[,，\s]$/.test(i.value) && /\d$/.test(i.value) ? ',' : '') + v); i.focus(); return; }
+  const st = t.closest('[data-st]');
+  if (st) { st.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === st)); return; }
+  const z = t.closest('[data-zoom]');
+  if (z) { setZoom(+z.dataset.zoom); return; }
+  const low = t.closest('[data-sklow]');
+  if (low) { const row = low.closest('.srow'); const on = !low.classList.contains('on'); low.classList.toggle('on', on); skDirty(row, 'low', on); return; }
+
+  const a = t.closest('[data-act]');
+  if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'add') openEdit(null);
+  else if (act === 'saveOne') saveOne(a);
+  else if (act === 'delOne') delOne(a);
+  else if (act === 'scan') openScan(false);
+  else if (act === 'rescan') openScan(true);
+  else if (act === 'doAdd') doAdd(a);
+  else if (act === 'doRetire') doRetire(a);
+  else if (act === 'ignOne') ignoreItems([{ key:a.dataset.key, code:a.dataset.code }], false);
+  else if (act === 'unignOne') ignoreItems([{ key:a.dataset.key }], true);
+  else if (act === 'ignBrand') ignoreItems([{ key:BRAND_IGNORE_PREFIX + a.dataset.brand, code:'整個品牌' }], false);
+  else if (act === 'unignBrand') ignoreItems([{ key:BRAND_IGNORE_PREFIX + a.dataset.brand }], true);
+  else if (act === 'stock') openStock();
+  else if (act === 'stockSeen') stockSeen();
+  else if (act === 'stockSave') stockSave(a);
+  else if (act === 'reload') load();
+  else if (act === 'saveApi') { const v = $('#apiIn').value.trim(); if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(v)) { toast('網址看起來不對，應該是 https://script.google.com/macros/s/…/exec'); return; } S.api = v; store.set('sample_api', v); load(); }
+});
+
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'showRetired') { S.showRetired = t.checked; store.set('sample_retired', t.checked ? '1' : '0'); render(); return; }
+  if (t.dataset.allin) { document.querySelectorAll(`[data-grp="${CSS.escape(t.dataset.allin)}"]`).forEach(c => c.checked = t.checked); updateScanButtons(); return; }
+  if (t.dataset.pick) { updateScanButtons(); return; }
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'q') { S.q = t.value; S._focusQ = true; render(); S._focusQ = false; return; }
+  if (t.id === 'skQ') { SK.q = t.value; renderStockRows(); return; }
+  if (t.hasAttribute('data-skmark')) { skDirty(t.closest('.srow'), 'mark', t.value.trim()); return; }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#mask.on')) closeModal();
+  if (e.key === 'Enter' && e.target.id === 'apiIn') document.querySelector('[data-act="saveApi"]').click();
+});
+window.addEventListener('resize', () => { if (SK.zoom === 0 && $('#imgPane')) setZoom(0); });
+document.addEventListener('load', e => { if (e.target.classList?.contains('stockImg') && SK.zoom === 0) setZoom(0); }, true);
+
+render();
+if (S.api) load();
+</script>
+</body>
+</html>
